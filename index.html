@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>日历</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif
+		}
+
+		:root {
+			--light-bg: #fff;
+			--light-container-bg: #f3f3f3;
+			--light-text: #333;
+			--light-text-secondary: #616161;
+			--light-border: #e1e4e8;
+			--light-accent: #007acc;
+			--light-accent-hover: #005a9e;
+			--light-cell-bg: #fff;
+			--light-today-bg: #e3f2fd;
+			--light-today-border: #2196f3;
+			--light-hover: #f0f0f0;
+			--light-special-bg: #fff3e0;
+			--light-special-border: #ffb74d;
+			--light-holiday-bg: #e8f5e9;
+			--light-holiday-border: #4caf50;
+			--light-birthday-bg: #fce4ec;
+			--light-birthday-border: #e91e63;
+			--dark-bg: #1e1e1e;
+			--dark-container-bg: #252526;
+			--dark-text: #ccc;
+			--dark-text-secondary: #858585;
+			--dark-border: #3e3e42;
+			--dark-accent: #0e639c;
+			--dark-accent-hover: #1177bb;
+			--dark-cell-bg: #2d2d30;
+			--dark-today-bg: #06395c;
+			--dark-today-border: #0e639c;
+			--dark-hover: #2a2d2e;
+			--dark-special-bg: #4d3800;
+			--dark-special-border: #b89500;
+			--dark-holiday-bg: #0d3a1d;
+			--dark-holiday-border: #2e7d32;
+			--dark-birthday-bg: #4a1a3d;
+			--dark-birthday-border: #ad1457;
+			--bg: var(--light-bg);
+			--container-bg: var(--light-container-bg);
+			--text: var(--light-text);
+			--text-secondary: var(--light-text-secondary);
+			--border: var(--light-border);
+			--accent: var(--light-accent);
+			--accent-hover: var(--light-accent-hover);
+			--cell-bg: var(--light-cell-bg);
+			--today-bg: var(--light-today-bg);
+			--today-border: var(--light-today-border);
+			--hover: var(--light-hover);
+			--special-bg: var(--light-special-bg);
+			--special-border: var(--light-special-border);
+			--holiday-bg: var(--light-holiday-bg);
+			--holiday-border: var(--light-holiday-border);
+			--birthday-bg: var(--light-birthday-bg);
+			--birthday-border: var(--light-birthday-border);
+			--sidebar-bg: var(--light-container-bg);
+			--sidebar-item-bg: var(--light-cell-bg);
+			--sidebar-item-hover: var(--light-hover)
+		}
+
+		body.dark-mode {
+			--bg: var(--dark-bg);
+			--container-bg: var(--dark-container-bg);
+			--text: var(--dark-text);
+			--text-secondary: var(--dark-text-secondary);
+			--border: var(--dark-border);
+			--accent: var(--dark-accent);
+			--accent-hover: var(--dark-accent-hover);
+			--cell-bg: var(--dark-cell-bg);
+			--today-bg: var(--dark-today-bg);
+			--today-border: var(--dark-today-border);
+			--hover: var(--dark-hover);
+			--special-bg: var(--dark-special-bg);
+			--special-border: var(--dark-special-border);
+			--holiday-bg: var(--dark-holiday-bg);
+			--holiday-border: var(--dark-holiday-border);
+			--birthday-bg: var(--dark-birthday-bg);
+			--birthday-border: var(--dark-birthday-border);
+			--sidebar-bg: var(--dark-container-bg);
+			--sidebar-item-bg: var(--dark-cell-bg);
+			--sidebar-item-hover: var(--dark-hover)
+		}
+
+		body {
+			background: var(--bg);
+			color: var(--text);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+			transition: background-color .3s, color .3s
+		}
+
+		.main-container {
+			display: flex;
+			max-width: 1300px;
+			width: 100%;
+			gap: 20px
+		}
+
+		@media(max-width:1100px) {
+			.main-container {
+				flex-direction: column
+			}
+		}
+
+		.container {
+			flex: 3;
+			background: var(--container-bg);
+			border-radius: 8px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+			padding: 25px
+		}
+
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+			flex-wrap: wrap;
+			gap: 15px
+		}
+
+		h1 {
+			font-size: 28px;
+			color: var(--accent);
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.theme-controls {
+			display: flex;
+			gap: 10px
+		}
+
+		.theme-btn {
+			background: var(--cell-bg);
+			border: 1px solid var(--border);
+			color: var(--text);
+			padding: 8px 16px;
+			border-radius: 4px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			transition: all .2s;
+			font-size: 14px
+		}
+
+		.theme-btn:hover {
+			background: var(--hover)
+		}
+
+		.theme-btn.active {
+			background: var(--accent);
+			color: #fff;
+			border-color: var(--accent)
+		}
+
+		.calendar-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+			padding-bottom: 15px;
+			border-bottom: 1px solid var(--border)
+		}
+
+		.month-year {
+			font-size: 24px;
+			font-weight: 600
+		}
+
+		.nav-buttons {
+			display: flex;
+			gap: 10px
+		}
+
+		.nav-btn {
+			background: var(--cell-bg);
+			border: 1px solid var(--border);
+			color: var(--text);
+			width: 40px;
+			height: 40px;
+			border-radius: 4px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all .2s
+		}
+
+		.nav-btn:hover {
+			background: var(--hover)
+		}
+
+		.weekdays {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			gap: 8px;
+			margin-bottom: 10px;
+			text-align: center;
+			font-weight: 600;
+			color: var(--text-secondary)
+		}
+
+		.weekday {
+			padding: 12px 5px
+		}
+
+		.calendar-grid {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			gap: 8px
+		}
+
+		.calendar-day {
+			background: var(--cell-bg);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			min-height: 100px;
+			padding: 10px;
+			display: flex;
+			flex-direction: column;
+			transition: all .2s;
+			position: relative;
+			cursor: pointer
+		}
+
+		.calendar-day:hover {
+			background: var(--hover);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0, 0, 0, .1)
+		}
+
+		.day-number {
+			font-size: 18px;
+			font-weight: 600;
+			margin-bottom: 5px
+		}
+
+		.special-events {
+			margin-top: auto;
+			font-size: 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 4px
+		}
+
+		.event {
+			padding: 3px 6px;
+			border-radius: 3px;
+			font-size: 11px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis
+		}
+
+		.today {
+			background: var(--today-bg);
+			border-color: var(--today-border)
+		}
+
+		.other-month {
+			opacity: .5
+		}
+
+		.special-day {
+			background: var(--special-bg);
+			border-color: var(--special-border)
+		}
+
+		.holiday {
+			background: var(--holiday-bg);
+			border-color: var(--holiday-border)
+		}
+
+		.birthday {
+			background: var(--birthday-bg);
+			border-color: var(--birthday-border)
+		}
+
+		.legend {
+			display: flex;
+			justify-content: center;
+			flex-wrap: wrap;
+			gap: 15px;
+			margin-top: 30px;
+			padding-top: 20px;
+			border-top: 1px solid var(--border)
+		}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 14px
+		}
+
+		.legend-color {
+			width: 16px;
+			height: 16px;
+			border-radius: 3px
+		}
+
+		.today .legend-color {
+			background: var(--today-bg);
+			border: 1px solid var(--today-border)
+		}
+
+		.special .legend-color {
+			background: var(--special-bg);
+			border: 1px solid var(--special-border)
+		}
+
+		.holiday .legend-color {
+			background: var(--holiday-bg);
+			border: 1px solid var(--holiday-border)
+		}
+
+		.birthday .legend-color {
+			background: var(--birthday-bg);
+			border: 1px solid var(--birthday-border)
+		}
+
+		.footer {
+			margin-top: 30px;
+			text-align: center;
+			color: var(--text-secondary);
+			font-size: 14px;
+			padding-top: 20px;
+			border-top: 1px solid var(--border)
+		}
+
+		.event-indicator {
+			position: absolute;
+			top: 6px;
+			right: 6px;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%
+		}
+
+		.special-day .event-indicator {
+			background: var(--special-border)
+		}
+
+		.holiday .event-indicator {
+			background: var(--holiday-border)
+		}
+
+		.birthday .event-indicator {
+			background: var(--birthday-border)
+		}
+
+		.icon {
+			width: 20px;
+			height: 20px
+		}
+
+		.icon svg {
+			width: 100%;
+			height: 100%
+		}
+
+		.today-date {
+			margin-top: 10px;
+			font-size: 14px;
+			color: var(--text-secondary);
+			text-align: center
+		}
+
+		.sidebar {
+			flex: 1;
+			background: var(--sidebar-bg);
+			border-radius: 8px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+			padding: 20px;
+			min-width: 280px
+		}
+
+		.sidebar-title {
+			font-size: 20px;
+			font-weight: 600;
+			color: var(--accent);
+			margin-bottom: 20px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid var(--border);
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.type-list {
+			list-style: none
+		}
+
+		.type-item {
+			margin-bottom: 10px
+		}
+
+		.type-header {
+			background: var(--sidebar-item-bg);
+			border: 1px solid var(--border);
+			border-radius: 5px;
+			padding: 12px;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-weight: 600;
+			transition: all .2s
+		}
+
+		.type-header:hover {
+			background: var(--sidebar-item-hover)
+		}
+
+		.type-count {
+			background: var(--accent);
+			color: #fff;
+			padding: 2px 8px;
+			border-radius: 10px;
+			font-size: 12px;
+			font-weight: 600
+		}
+
+		.type-dates {
+			padding: 10px 0;
+			display: none
+		}
+
+		.date-item {
+			background: var(--sidebar-item-bg);
+			border: 1px solid var(--border);
+			border-radius: 4px;
+			padding: 8px 12px;
+			margin-bottom: 5px;
+			font-size: 14px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			cursor: pointer;
+			transition: all .2s
+		}
+
+		.date-item:hover {
+			background: var(--sidebar-item-hover);
+			transform: translateX(5px)
+		}
+
+		.date-name {
+			font-weight: 500
+		}
+
+		.date-day {
+			color: var(--text-secondary);
+			font-size: 13px
+		}
+
+		@media(max-width:768px) {
+
+			.container,
+			.sidebar {
+				padding: 15px
+			}
+
+			.calendar-day {
+				min-height: 80px;
+				padding: 8px
+			}
+
+			.day-number {
+				font-size: 16px
+			}
+
+			.event {
+				font-size: 10px;
+				padding: 2px 4px
+			}
+		}
+
+		@media(max-width:480px) {
+			header {
+				flex-direction: column;
+				align-items: flex-start
+			}
+
+			.theme-controls {
+				align-self: stretch
+			}
+
+			.theme-btn {
+				flex: 1;
+				justify-content: center
+			}
+
+			.calendar-day {
+				min-height: 70px
+			}
+
+			.weekday {
+				padding: 8px 2px;
+				font-size: 14px
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="main-container">
+		<div class="container">
+			<header>
+				<h1>
+					<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+							<path
+								d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 6v2h14V6H5zm2 4h10v2H7zm0 4h7v2H7z" />
+						</svg></div>日历
+				</h1>
+				<div class="theme-controls"><button id="auto-mode" class="theme-btn active">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path
+									d="M12 6c-3.86 0-7 3.14-7 7s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+								<path opacity=".3"
+									d="M12 4c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z" />
+							</svg></div>自动
+					</button><button id="light-mode" class="theme-btn">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path
+									d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
+							</svg></div>浅色
+					</button><button id="dark-mode" class="theme-btn">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path
+									d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+							</svg></div>深色
+					</button></div>
+			</header>
+			<div class="calendar-header">
+				<div class="month-year" id="current-month-year">2023年11月</div>
+				<div class="nav-buttons"><button id="prev-year" class="nav-btn" title="上一年">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M18.41 7.41L17 6l-6 6 6 6 1.41-1.41L13.83 12l4.58-4.59zM6 6h2v12H6z" />
+							</svg></div>
+					</button><button id="prev-month" class="nav-btn" title="上一月">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59z" />
+							</svg></div>
+					</button><button id="today-btn" class="nav-btn" title="今天">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path
+									d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 6v2h14V6H5zm2 4h10v2H7zm0 4h7v2H7z" />
+							</svg></div>
+					</button><button id="next-month" class="nav-btn" title="下一月">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+							</svg></div>
+					</button><button id="next-year" class="nav-btn" title="下一年">
+						<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M5.59 7.41L7 6l6 6-6 6-1.41-1.41L10.17 12 5.59 7.41zM16 6h2v12h-2z" />
+							</svg></div>
+					</button></div>
+			</div>
+			<div class="weekdays">
+				<div class="weekday">日</div>
+				<div class="weekday">一</div>
+				<div class="weekday">二</div>
+				<div class="weekday">三</div>
+				<div class="weekday">四</div>
+				<div class="weekday">五</div>
+				<div class="weekday">六</div>
+			</div>
+			<div class="calendar-grid" id="calendar-grid"></div>
+			<div class="today-date" id="today-date"></div>
+			<div class="legend">
+				<div class="legend-item today">
+					<div class="legend-color"></div><span>今天</span>
+				</div>
+				<div class="legend-item special">
+					<div class="legend-color"></div><span>特殊日</span>
+				</div>
+				<div class="legend-item holiday">
+					<div class="legend-color"></div><span>节日</span>
+				</div>
+				<div class="legend-item birthday">
+					<div class="legend-color"></div><span>生日</span>
+				</div>
+			</div>
+			<div class="footer">
+				<p>作者:wbw121124 | 许可证:GPLv3.0</p>
+			</div>
+		</div>
+		<div class="sidebar">
+			<div class="sidebar-title">
+				<div class="icon"><svg viewBox="0 0 24 24" fill="currentColor">
+						<path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z" />
+					</svg></div>分类日期
+			</div>
+			<div id="type-list" class="type-list"></div>
+		</div>
+	</div>
+	<script>
+		class Calendar {
+			constructor() {
+				this.currentDate = new Date();
+				this.specialDates = [];
+				this.typeGroups = {};
+				this.initTheme();
+				this.initEvents();
+				this.loadSpecialDates()
+			}
+			async loadSpecialDates() {
+				try {
+					const response = await fetch('./dates.json');
+					if (!response.ok) throw new Error('无法加载dates.json');
+					this.specialDates = await response.json();
+					this.groupDatesByType();
+					this.renderCalendar();
+					this.renderTypeList()
+				} catch (error) {
+					console.error('加载dates.json失败:', error);
+					this.specialDates = [{ name: '示例生日', type: ['生日'], mon: '12', day: '30' }, { name: '元旦', type: ['节日'], mon: '1', day: '1' }];
+					this.groupDatesByType();
+					this.renderCalendar();
+					this.renderTypeList()
+				}
+			}
+			groupDatesByType() {
+				this.typeGroups = {};
+				this.specialDates.forEach(date => {
+					const monthDay = `${date.mon.padStart(2, '0')}-${date.day.padStart(2, '0')}`;
+					if (date.type && date.type.length > 0) {
+						date.type.forEach(type => {
+							if (!this.typeGroups[type]) this.typeGroups[type] = [];
+							this.typeGroups[type].push({ ...date, monthDay });
+						});
+					}
+					else {
+						if (!this.typeGroups['特殊日']) this.typeGroups['特殊日'] = [];
+						this.typeGroups['特殊日'].push({ ...date, monthDay });
+					}
+				});
+				Object.keys(this.typeGroups).forEach(type => {
+					this.typeGroups[type].sort((a, b) => a.monthDay.localeCompare(b.monthDay));
+				});
+			}
+			initTheme() {
+				const savedTheme = localStorage.getItem('calendar-theme') || 'auto';
+				this.setTheme(savedTheme);
+				const themeBtns = ['auto-mode', 'light-mode', 'dark-mode'];
+				themeBtns.forEach(id => {
+					const btn = document.getElementById(id);
+					if (id === `${savedTheme}-mode`) btn.classList.add('active');
+					btn.addEventListener('click', () => this.setTheme(id.replace('-mode', '')));
+				});
+			}
+			setTheme(theme) {
+				document.body.classList.remove('dark-mode', 'light-mode');
+				if (theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+					document.body.classList.add('dark-mode');
+				}
+				else if (theme === 'light') {
+					document.body.classList.add('light-mode');
+				} localStorage.setItem('calendar-theme', theme);
+				['auto-mode', 'light-mode', 'dark-mode'].forEach(id => {
+					const btn = document.getElementById(id);
+					btn.classList.toggle('active', id === `${theme}-mode`);
+				});
+			}
+			initEvents() {
+				document.getElementById('prev-month').addEventListener('click', () => {
+					this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+					this.renderCalendar();
+				});
+				document.getElementById('next-month').addEventListener('click', () => {
+					this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+					this.renderCalendar();
+				});
+				document.getElementById('prev-year').addEventListener('click', () => {
+					this.currentDate.setFullYear(this.currentDate.getFullYear() - 1);
+					this.renderCalendar();
+				});
+				document.getElementById('next-year').addEventListener('click', () => {
+					this.currentDate.setFullYear(this.currentDate.getFullYear() + 1);
+					this.renderCalendar();
+				});
+				document.getElementById('today-btn').addEventListener('click', () => {
+					this.currentDate = new Date();
+					this.renderCalendar();
+				});
+			}
+			renderCalendar() {
+				const year = this.currentDate.getFullYear();
+				const month = this.currentDate.getMonth();
+				const firstDay = new Date(year, month, 1);
+				const lastDay = new Date(year, month + 1, 0);
+				const daysInMonth = lastDay.getDate();
+				const firstDayIndex = firstDay.getDay();
+				const today = new Date();
+				const isTodayMonth = today.getFullYear() === year && today.getMonth() === month;
+				document.getElementById('current-month-year').textContent = `${year}年${month + 1}月`;
+				document.getElementById('today-date').textContent = `今天:${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+				let calendarHTML = '';
+				for (let i = 0;
+					i < firstDayIndex;
+					i++) {
+					const prevDate = new Date(year, month, 0 - firstDayIndex + i + 1);
+					calendarHTML += this.createDayElement(prevDate, true);
+				}
+				for (let day = 1;
+					day <= daysInMonth;
+					day++) {
+					const date = new Date(year, month, day);
+					calendarHTML += this.createDayElement(date, false);
+				}
+				const totalCells = 42;
+				const cellsUsed = firstDayIndex + daysInMonth;
+				for (let i = 1; i <= totalCells - cellsUsed; i++) {
+					const nextDate = new Date(year, month + 1, i);
+					calendarHTML += this.createDayElement(nextDate, true);
+				}
+				document.getElementById('calendar-grid').innerHTML = calendarHTML;
+			}
+			createDayElement(date, isOtherMonth) {
+				const year = date.getFullYear();
+				const month = date.getMonth() + 1;
+				const day = date.getDate();
+				const dayOfWeek = date.getDay();
+				const today = new Date();
+				const isToday = today.getDate() === day && today.getMonth() + 1 === month && today.getFullYear() === year;
+				const monthStr = month.toString().padStart(2, '0');
+				const dayStr = day.toString().padStart(2, '0');
+				const dateKey = `${monthStr}-${dayStr}`;
+				const eventsForDate = this.specialDates.filter(d => d.mon === monthStr && d.day === dayStr);
+				let dayClass = 'calendar-day';
+				if (isOtherMonth)
+					dayClass += ' other-month';
+				if (isToday)
+					dayClass += ' today';
+				if (eventsForDate.length > 0) {
+					const hasHoliday = eventsForDate.some(e => e.type.includes('节日'));
+					const hasBirthday = eventsForDate.some(e => e.type.includes('生日'));
+					if (hasHoliday)
+						dayClass += ' holiday';
+					else if (hasBirthday)
+						dayClass += ' birthday';
+					else
+						dayClass += ' special-day';
+				}
+				let eventsHTML = '';
+				if (eventsForDate.length > 0) {
+					eventsForDate.forEach(event => {
+						const typeClass = event.type.includes('节日') ? 'holiday' : event.type.includes('生日') ? 'birthday' : 'special';
+						eventsHTML += `<div class="event ${typeClass}">${event.name}</div>`;
+					});
+				}
+				return `<div class="${dayClass}" data-date="${year}-${monthStr}-${dayStr}"><div class="day-number">${day}</div>${eventsForDate.length > 0 ? '<div class="event-indicator"></div>' : ''}${eventsHTML ? '<div class="special-events">' + eventsHTML + '</div>' : ''}</div>`;
+			}
+			renderTypeList() {
+				const typeList = document.getElementById('type-list');
+				if (Object.keys(this.typeGroups).length === 0) {
+					typeList.innerHTML = '<div style="padding:20px; text-align: center; color: var(--text-secondary)">没有找到分类数据</div>';
+					return;
+				}
+				let html = '';
+				Object.keys(this.typeGroups).sort().forEach(type => {
+					const dates = this.typeGroups[type];
+					const sortedDates = dates.sort((a, b) => a.monthDay.localeCompare(b.monthDay));
+					let datesHTML = '';
+					sortedDates.forEach(date => {
+						datesHTML += `<div class="date-item" data-date="${date.mon}-${date.day}"><span class="date-name">${date.name}</span><span class="date-day">${parseInt(date.mon)}月${parseInt(date.day)}日</span></div>`;
+					});
+					html += `<li class="type-item"><div class="type-header"><span>${type}</span><span class="type-count">${dates.length}</span></div><div class="type-dates">${datesHTML}</div></li>`;
+				});
+				typeList.innerHTML = html;
+				document.querySelectorAll('.type-header').forEach(header => {
+					header.addEventListener('click', (e) => {
+						const datesDiv = e.currentTarget.nextElementSibling;
+						datesDiv.style.display = datesDiv.style.display === 'block' ? 'none' : 'block';
+					});
+				});
+				document.querySelectorAll('.date-item').forEach(item => {
+					item.addEventListener('click', (e) => {
+						const dateStr = e.currentTarget.dataset.date;
+						const [mon, day] = dateStr.split('-');
+						const targetMonth = parseInt(mon) - 1;
+						const targetDay = parseInt(day);
+						const currentYear = this.currentDate.getFullYear();
+						const targetDate = new Date(currentYear, targetMonth, targetDay);
+						// if (targetMonth < this.currentDate.getMonth() || (targetMonth === this.currentDate.getMonth() && targetDay < this.currentDate.getDate())) {
+						// 	targetDate.setFullYear(currentYear + 1);
+						// } 
+						this.currentDate = targetDate;
+						this.renderCalendar();
+					});
+				});
+			}
+		}
+
+		const calendar = new Calendar();
+		window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () => {
+			if (localStorage.getItem('calendar-theme') === 'auto')
+				calendar.setTheme('auto');
+		});
+	</script>
+</body>
+
+</html>
