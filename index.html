@@ -819,7 +819,7 @@ const mon = params.get('mon'); // 获取'mon'的值
 const day = params.get('day'); // 获取'day'的值
 
 		if(mon&&day&&mon!==""&&day!=="") {
-			calendar.currentDate=new Date((new Date()).getFullYear(),mon,day);
+			calendar.currentDate=new Date((new Date()).getFullYear(),mon-1,day);
 			this.renderCalendar();
 		}
 
